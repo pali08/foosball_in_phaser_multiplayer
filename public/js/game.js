@@ -34,10 +34,26 @@ function create() {
         console.log('player was created')
       console.log(gamers[id].gamerId)
       console.log(self.socket.id)
+      // createPlayers(self, self.socket.id)
       if (gamers[id].gamerId === self.socket.id) {
         //addPlayer(self, players[id]);
         createPlayers(self, gamers[id])
+        var first_gamer_id = gamers[id]
       }
+      else {
+        createPlayers(self, gamers[id])
+        }
+      });
+    })
+    this.socket.on('newGamer', function (gamerInfo) {
+      createOtherPlayers(self, gamerInfo);
+    });
+    this.socket.on('disconnect', function (gamerId) {
+      self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+        if (gamerId === otherGamer.gamerId) {
+          otherPlayer.destroy();
+        }
+      });
     });
     // console.log('gamerId:' + gamers[socket.id].gamerId);
     // console.log('socketId:' + self.socket.id);
@@ -50,7 +66,6 @@ function create() {
     //   console.log('blue player')
     //   createPlayers(self, gamers[id])
     // }
-  })
 }
 function update() {}
 
@@ -71,3 +86,22 @@ function createPlayers(self, gamerInfo) {
   players.onWorldBounds = false;
   return players;
 }
+function createOtherPlayers(self, gamerInfo) {
+  var imageName = gamerInfo.gamerColor;
+  var positions = gamerInfo.positions;
+  var rotation = gamerInfo.rotation;
+  var players = self.physics.add.group();
+  for (var i = 0; i < positions.length; ++i) {
+      var player = self.physics.add.sprite(positions[i][0], positions[i][1], imageName);
+      player.displayHeight = player.height * playerReductionRatio;
+      player.displayWidth = player.width * playerReductionRatio;
+      player.angle = player.angle + rotation;
+      players.add(player);
+      player.setImmovable();
+      //players.setCollideWorldBounds(true);
+  }
+  players.onWorldBounds = false;
+  //self.otherPlayer.add(players)
+  return players;
+}
+
