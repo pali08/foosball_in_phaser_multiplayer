@@ -7,7 +7,7 @@ var config = {
     default: 'arcade',
     arcade: {
       debug: false,
-      gravity: { y: 0 }
+      //gravity: { y: 0 }
     }
   },
   scene: {
@@ -17,6 +17,9 @@ var config = {
   } 
 };
 const playerReductionRatio = 1 / 5;
+var currentPlayers;
+const worldPlayerBoundaryDistance = 30;
+const playerVelocity = 160;
 var game = new Phaser.Game(config);
 function preload() {
   this.load.image('playground', 'assets/playground.jpeg');
@@ -27,6 +30,7 @@ function preload() {
 }
 function create() {
   var self = this;
+  var otherGamerPlayers;
   console.log('gamerId:')
   this.socket = io();
   this.socket.on('currentGamer', function (gamers) {
@@ -37,7 +41,7 @@ function create() {
       // createPlayers(self, self.socket.id)
       if (gamers[id].gamerId === self.socket.id) {
         //addPlayer(self, players[id]);
-        createPlayers(self, gamers[id])
+        currentPlayers = createPlayers(self, gamers[id])
         var first_gamer_id = gamers[id]
       }
       else {
@@ -55,19 +59,14 @@ function create() {
         }
       });
     });
-    // console.log('gamerId:' + gamers[socket.id].gamerId);
-    // console.log('socketId:' + self.socket.id);
-    // console.log('gamer HR Id:'+ gamers[socket.id].gamerHRId)
-    // if(gamers[socket.id].gamerId === self.socket.id && gamers[socket.id].gamerHRId === 0) {
-    //   console.log('red player')
-    //   createPlayers(self, gamers[id])
-    // }
-    // if(gamers[socket.id].gamerId === self.socket.id && gamers[socket.id].gamerHRId === 1) {
-    //   console.log('blue player')
-    //   createPlayers(self, gamers[id])
-    // }
 }
-function update() {}
+
+function update() {
+  //handleKeyboardInput()
+  cursors = this.input.keyboard.createCursorKeys();
+  handleKeyboardInput(cursors.up, cursors.down, currentPlayers);
+  // handleKeyboardInput(keyW, keyS, bluePlayers);
+}
 
 function createPlayers(self, gamerInfo) {
   var imageName = gamerInfo.gamerColor;
@@ -81,7 +80,7 @@ function createPlayers(self, gamerInfo) {
       player.angle = player.angle + rotation;
       players.add(player);
       player.setImmovable();
-      //players.setCollideWorldBounds(true);
+      // players.setCollideWorldBounds(true);
   }
   players.onWorldBounds = false;
   return players;
@@ -101,7 +100,33 @@ function createOtherPlayers(self, gamerInfo) {
       //players.setCollideWorldBounds(true);
   }
   players.onWorldBounds = false;
-  //self.otherPlayer.add(players)
+  self.otherGamerPlayers = players
   return players;
 }
 
+function handleKeyboardInput(cursorsUp, cursorsDown, players) {
+  if (cursorsUp.isDown
+      // https://phaser.discourse.group/t/how-do-i-make-a-group-collide-with-world-bounds/2448
+      // I tried to set boundaries by //player.body.setCollideWorldBounds(true);
+      // but it does set bonds to individual members of group - i.e. first player hits edge, but others
+      // are still moving until they hit edge too
+      // additional note: setColliderWorldBounds need to be set AFTER player is added to group
+      && players.getChildren()[1].y > worldPlayerBoundaryDistance
+  ) {
+      players.setVelocityY(-playerVelocity);
+  }
+  else if (cursorsDown.isDown
+      && players.getChildren()[2].y < config.height - worldPlayerBoundaryDistance
+  ) {
+      players.setVelocityY(playerVelocity);
+  }
+  else if (cursorsUp.isUp) {
+      console.log(typeof(players) == null)
+      console.log(typeof(players))
+      players.setVelocityY(0);
+  }
+   else if (cursorsDown.isUp) {
+       players.setVelocityY(0);
+   }
+
+}
