@@ -18,6 +18,7 @@ var config = {
 };
 const playerReductionRatio = 1 / 5;
 var currentPlayers;
+let cursors
 const worldPlayerBoundaryDistance = 30;
 const playerVelocity = 160;
 var game = new Phaser.Game(config);
@@ -29,6 +30,7 @@ function preload() {
   this.load.image('gate_bar', 'assets/gate_bar.jpeg');
 }
 function create() {
+  cursors = this.input.keyboard.createCursorKeys();
   var self = this;
   var otherGamerPlayers;
   console.log('gamerId:')
@@ -63,7 +65,6 @@ function create() {
 
 function update() {
   //handleKeyboardInput()
-  cursors = this.input.keyboard.createCursorKeys();
   handleKeyboardInput(cursors.up, cursors.down, currentPlayers);
   // handleKeyboardInput(keyW, keyS, bluePlayers);
 }
