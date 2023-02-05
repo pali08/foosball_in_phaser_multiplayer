@@ -65,6 +65,7 @@ function create() {
 
 function update() {
   //handleKeyboardInput()
+  cursors = this.input.keyboard.createCursorKeys();
   handleKeyboardInput(cursors.up, cursors.down, currentPlayers);
   // handleKeyboardInput(keyW, keyS, bluePlayers);
 }
